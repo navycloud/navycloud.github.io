@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="AMD GPU虚拟化,青云原创," />
 
 
 
@@ -79,13 +79,22 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="navycloud 青云">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
+<meta name="keywords" content="AMD GPU虚拟化,青云原创">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AMD GPU虚拟化的按需调度策略">
+<meta property="og:url" content="http://yoursite.com/2018/07/27/on-demand-scheduling/index.html">
 <meta property="og:site_name" content="navycloud 青云">
+<meta property="og:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
+<meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/on-demand-scheduling.png">
+<meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
+<meta property="og:updated_time" content="2018-07-29T11:56:17.359Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="navycloud 青云">
+<meta name="twitter:title" content="AMD GPU虚拟化的按需调度策略">
+<meta name="twitter:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
+<meta name="twitter:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
 
 
 
@@ -115,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/07/27/on-demand-scheduling/"/>
 
 
 
 
 
-  <title>navycloud 青云</title>
+  <title>AMD GPU虚拟化的按需调度策略 | navycloud 青云</title>
   
 
 
@@ -140,8 +149,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -224,9 +232,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -256,9 +264,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/27/on-demand-scheduling/" itemprop="url">AMD GPU虚拟化的按需调度策略</a></h1>
+          <h1 class="post-title" itemprop="name headline">AMD GPU虚拟化的按需调度策略</h1>
         
 
         <div class="post-meta">
@@ -308,9 +314,7 @@
       
 
       
-        
-          
-            <p><em>青云原创, GPU 虚拟化</em></p>
+        <p><em>青云原创, GPU 虚拟化</em></p>
 <h2 id="采用按需调度后的效果"><a href="#采用按需调度后的效果" class="headerlink" title="采用按需调度后的效果"></a>采用按需调度后的效果</h2><p>在正文开始前，先用文字秀一下成果：</p>
 <ul>
 <li>在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。</li>
@@ -394,8 +398,6 @@
 <h2 id="具体游戏测试结果"><a href="#具体游戏测试结果" class="headerlink" title="具体游戏测试结果"></a>具体游戏测试结果</h2><p>做图比较困难，等我把fps统计数据转化为通俗易懂的fps曲线图后再放出来给童鞋们一个直观的感受吧，我会测试8VF下跑游戏的效果，会有on-demand 调度 VS round-robin 调度的PK 图。</p>
 <p>Farewell</p>
 
-          
-        
       
     </div>
     
@@ -410,14 +412,22 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/AMD-GPU虚拟化/" rel="tag"># AMD GPU虚拟化</a>
+          
+            <a href="/tags/青云原创/" rel="tag"># 青云原创</a>
+          
+        </div>
+      
+
+      
+      
+      
 
       
 
       
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -427,10 +437,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -438,6 +449,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -458,8 +473,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -514,6 +538,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#采用按需调度后的效果"><span class="nav-number">1.</span> <span class="nav-text">采用按需调度后的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU虚拟化方案简介"><span class="nav-number">2.</span> <span class="nav-text">AMD GPU虚拟化方案简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU-虚拟化现有调度方案及其缺点"><span class="nav-number">3.</span> <span class="nav-text">AMD GPU 虚拟化现有调度方案及其缺点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要这套”on-demand“调度策略"><span class="nav-number">4.</span> <span class="nav-text">为什么需要这套”on-demand“调度策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新的”on-demand“调度策略"><span class="nav-number">5.</span> <span class="nav-text">新的”on-demand“调度策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-YIELD-机制"><span class="nav-number">5.1.</span> <span class="nav-text">1. YIELD 机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-电梯算法"><span class="nav-number">5.2.</span> <span class="nav-text">2. 电梯算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-效果如何？看图说话"><span class="nav-number">5.3.</span> <span class="nav-text">3. 效果如何？看图说话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-为什么windows-guest做不了"><span class="nav-number">5.4.</span> <span class="nav-text">4. 为什么windows guest做不了</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体游戏测试结果"><span class="nav-number">6.</span> <span class="nav-text">具体游戏测试结果</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -654,6 +694,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
