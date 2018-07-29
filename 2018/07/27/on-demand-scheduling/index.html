@@ -90,7 +90,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/on-demand-scheduling.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
-<meta property="og:updated_time" content="2018-07-29T11:56:17.359Z">
+<meta property="og:updated_time" content="2018-07-29T12:17:16.232Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AMD GPU虚拟化的按需调度策略">
 <meta name="twitter:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
@@ -365,9 +365,9 @@
 <p>第一点我给它起了一个名字来描述它这个feature – ”VF yield“，顾名思义VF 可以yield自己从而提前让出GPU资源</p>
 <h3 id="1-YIELD-机制"><a href="#1-YIELD-机制" class="headerlink" title="1. YIELD 机制"></a>1. YIELD 机制</h3><p>该feature需要两个软件模块同时配合，1）guest的KMD； 2）hypervisor端的GIM （GIM是 在hypervisor端的一个HMD模块，主要职责就是执行world switch）。 guest KMD 需要有一个方法可以立即判断出自己当前时刻是否不需要GPU资源，如果不需要就立刻通知GIM，GIM收到通知后立刻做world switch。</p>
 <p>guest KMD 如何判断此时此刻是否需要GPU资源? 这个方法是一个tricky，但是目前我只在Linux系统上实现了，windows guest我没有想出匹配的方案，也许需要windows内核专家帮忙。下面讲在Linux guest上的实现：</p>
-<p>在gpu scheduler中 （gpu scheduler 是指guest kmd中的模块，并不是GIM中的做world switch的调度器，不熟悉AMD软件的童鞋比较容易困惑，这个模块的功能是公平地把每个进程的job/cmd按round-robin的方式提交给ring buffer），每一个cmd提交到ring buffer后，都会在gpu scheduler维护的一个一个双向链表中插入一个job来代表该cmd，当一个job/cmd完成后，中断会通知CPU，CPU 会把相应的job从该双向链表中删除，整个过程都是有同步保护的，因此这个链表可以完美地反映对这个VF 而言哪些job正在运行，哪些job刚刚完成。</p>
+<p>在gpu scheduler中 （gpu scheduler 是指guest kmd中的模块，并不是GIM中的做world switch的调度器，不熟悉AMD软件的童鞋比较容易困惑，这个模块的功能是公平地把每个进程的job/cmd按round-robin的方式提交给ring buffer），每一个cmd提交到ring buffer后，都会在gpu scheduler维护的一个双向链表中插入一个job来代表该cmd，当一个job/cmd完成后，中断会通知CPU，CPU 会把相应的job从该双向链表中删除，整个过程都是有同步保护的，因此这个链表可以完美地反映对这个VF 而言哪些job正在运行，哪些job刚刚完成。</p>
 <p><em>note: 该双向链表叫 “ring_mirror_list”, 名字是我当初写代码时随便起的</em></p>
-<p>下面讲这个trick，当一个job提交时，如果判断mirror list是空的，就说明当前ring突然从idle状态切换到了busy状态，我把这种case称作“<strong>first job on empty ring</strong>”，如果mirror list 是空的，说明这个job提交的时刻该VF 上已经有cmd正在让GPU 处理中（是逻辑上正在让GPU 处理中，因为GPU 此时可能调度在另一个VF 上），因此这个job就不是 “<strong>first job on empty ring</strong>”。ok理解了这点再继续理解对应的另一个概念— “<strong>last job finish</strong>”： 当一个job完成时中断会通知CPU，于是CPU会把这个job从mirror list中remove掉，然后再去check  mirror list，看是否mirror list已经empty了，如果empty那就说明这个刚刚finish的job是这个VF 最后一个需要处理的job，暂时并没有其他job/cmd提交到VF 上。</p>
+<p>下面讲这个trick，当一个job提交时，如果判断mirror list是空的，就说明当前ring突然从idle状态切换到了busy状态，我把这种case称作“<strong>first job on empty ring</strong>”，如果job提交时mirror list 不是空的，说明这个job提交的时刻该VF 上已经有cmd正在让GPU 处理中（是逻辑上正在让GPU 处理中，因为GPU 此时可能调度在另一个VF 上），因此这个job就不是 “<strong>first job on empty ring</strong>”。ok理解了这点再继续理解对应的另一个概念— “<strong>last job finish</strong>”： 当一个job完成时中断会通知CPU，于是CPU会把这个job从mirror list中remove掉，然后再去check  mirror list，看是否mirror list已经empty了，如果empty那就说明这个刚刚finish的job是这个VF 最后一个需要处理的job，暂时并没有其他job/cmd提交到VF 上。</p>
 <p>有了以上tricks，guest KMD 可以对每一条ring瞬间检查出是否不再需要该ring所对应的GPU 资源，或者该 ring是否有一个job初次提交从而可以告诉GIM自己需要被调度，不要被电梯算法直接skip掉（初次提交意味着提交时，该ring的mirror list 是空的）。</p>
 <p>如果不在gpu scheduler里面做手脚实现这套trick，只能用measuring的方法检测GPU是否idle，那会非常低效率（因为检测需要时间去取得采样点，而这个过程就是对GPU资源的白白的浪费）。</p>
 <p>由于AMD的GPU比较复杂，因此world switch的调度对象不是一个GFX engine，而是逻辑上三个engine，分别是：</p>
