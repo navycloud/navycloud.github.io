@@ -79,21 +79,21 @@
 
 
 
-<meta name="description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
+<meta name="description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题，桢速度曲线为方波结构，与物理机曲线拟合度较低。 采">
 <meta name="keywords" content="AMD GPU虚拟化,青云原创">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AMD GPU虚拟化的按需调度策略">
 <meta property="og:url" content="http://yoursite.com/2018/07/27/on-demand-scheduling/index.html">
 <meta property="og:site_name" content="navycloud 青云">
-<meta property="og:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
+<meta property="og:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题，桢速度曲线为方波结构，与物理机曲线拟合度较低。 采">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/on-demand-scheduling.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
-<meta property="og:updated_time" content="2018-07-29T12:17:16.232Z">
+<meta property="og:updated_time" content="2018-08-04T09:31:11.832Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AMD GPU虚拟化的按需调度策略">
-<meta name="twitter:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。 采用">
+<meta name="twitter:description" content="青云原创, GPU 虚拟化 采用按需调度后的效果在正文开始前，先用文字秀一下成果：  在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。 采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题，桢速度曲线为方波结构，与物理机曲线拟合度较低。 采">
 <meta name="twitter:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
 
 
@@ -318,13 +318,13 @@
 <h2 id="采用按需调度后的效果"><a href="#采用按需调度后的效果" class="headerlink" title="采用按需调度后的效果"></a>采用按需调度后的效果</h2><p>在正文开始前，先用文字秀一下成果：</p>
 <ul>
 <li>在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。</li>
-<li>采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题（即某些时候突然fps掉到比40还要低很多）。</li>
-<li>采用新调度算法后，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo测试，每一个用户都得到了100 fps的average 贞速度，并且每一个用户的最低贞速度都非常高 (50以上）。</li>
+<li>采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题，桢速度曲线为方波结构，与物理机曲线拟合度较低。</li>
+<li>采用新调度算法后，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo测试，每一个用户都得到了100 fps的average 贞速度，并且每一个用户的最低贞速度都较原始调度方案提高，桢速度曲线与物理机曲线拟合度较高。</li>
 </ul>
 <p><em>注：上述结果是剔除掉了游戏载入时的统计，载入时段的几秒内FPS波动太大，高的有1400，低的只有4。</em></p>
 <h2 id="AMD-GPU虚拟化方案简介"><a href="#AMD-GPU虚拟化方案简介" class="headerlink" title="AMD GPU虚拟化方案简介"></a>AMD GPU虚拟化方案简介</h2><p>note：本文面向对GPU硬件和驱动有一定基础的同学，当然没有基础也可以嗑瓜子看看</p>
-<p>本文主要内容是给大家分享一下我最近在工作中关于GPU虚拟化调度策略的一点研究成果，因此我并不会详细地讲解AMD GPU虚拟化技术原理实现，仅从概念上几笔带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇，由于Linux系统上是我实现的因此我只写Linux。</p>
-<p>AMD给客户的虚拟化方案整体上是一套基于SR-iov的硬件虚拟化方案（关于SR-IOV读者可以自己google之），所谓基于硬件的虚拟化就是尽量用硬件和firmware去实现GPU的基本功能（软件作为辅助），Intel的方案是基于软件的GPU虚拟化，因此他们的方案中guest KMD（guest kernel mode driver） 和bare-metal（物理机系统称为bare-metal）相比有较大的改动，主要是command submit和memory management部分，比如intel的command submit在guest KMD中实际上并不会把command 提交到hardware上，而是通过hyper call的方式提交给HMD (hypervisor module driver），当然hyper call只是一种说法，实际上可以通过修改QEMU来实现hyper call，例如修改QEMU代码，创建一种新的虚拟GPU 设备，并且为这个设备的MMIO（寄存器）做trap。当虚拟机 access这些MMIO 时QEMU就会拦截住并调用vendor实现的callback函数，从而达到hyper call的目的，例如guest需要为一段内存映射到GPU 地址空间时就会去设置一些MMIO寄存器， 而这些MMIO寄存器都是QEMU 虚拟出来的并且可以截获，从而让HMD就有机会把这段guest physical  address 转成 host physical address 后再映射到GPU 地址空间，把 GPA 专为 HPA的目的很简单但很重要：<strong>因为GPU只能访问真正的物理内存地址，虚拟机中的guest physical address对于GPU而言是无意义的。</strong></p>
+<p>本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇。</p>
+<p>AMD给客户的虚拟化方案整体上是一套基于SR-IOV的硬件虚拟化方案（关于SR-IOV读者可以自己google之），所谓基于硬件的虚拟化就是尽量用硬件和firmware去实现GPU的基本功能，且尽量维持物理机GPU驱动软件的复用程度。Intel的方案是基于软件的GPU虚拟化，他们的方案中guest KMD（guest kernel mode driver） 和bare-metal（物理机系统称为bare-metal）相比有较大的改动，主要是command submit和memory manage部分，比如intel的command submit在guest KMD中实际上并不会把command 提交到hardware上，而是通过hyper call的方式提交给HMD (hypervisor module driver），当然hyper-call只是一种说法，实际的做法可以通过修改QEMU来实现而不一定必须是hyper-call，例如修改QEMU代码，创建一种新的虚拟GPU 设备，并且为这个设备的MMIO（寄存器）做trap。当虚拟机 access这些MMIO 时QEMU就会拦截并调用vendor实现的callback函数，从而实现hyper-call的作用，例如guest需要吧一段虚拟机内存映射到GPU 地址空间时就会去设置一些MMIO寄存器， 而这些MMIO寄存器都是QEMU 虚拟出来的并且可以截获，从而让HMD就有机会把这段guest physical  address 转成 host physical address 后再映射到GPU 地址空间，把 GPA 专为 HPA的原因是：<strong>GPU只能访问真正的物理内存地址，虚拟机中的guest physical address对于GPU而言是无意义的。</strong></p>
 <p><em>注：以上对intel GPU虚拟化方案的技术描述完全是我个人不责任地主观臆断，且没有任何事实依据，本人暂时也没时间去研究 Intel的虚拟化开源代码，intel的同仁如果觉得我胡说八道请轻微diss一下即可。</em></p>
 <p>反观AMD的方案，由于利用SR-IOV 这个标准，由此在host端可以看到多个（目前最大16个）virtual function device， 也就是虚拟出来的PCIe 显卡（简称VF），然后把这些VF pass through 给QEMU虚拟机，因此从软件上讲QEMU完全不知道这些VF 是虚拟出来的。那么VF 能不能完全像物理GPU 一样进行绘图渲染呢？</p>
 <p>你猜到了，并不能！AMD的VF 其实并不是完全的硬件虚拟化设备，它其实有只有若干block是硬件级虚拟化的（硬件级虚拟化就是说每一个VF 都有各自独立的ASIC电路为这些block服务），以下这些block被真正硬件虚拟化了：</p>
@@ -334,68 +334,61 @@
 <li>IOMMU （这个是主板芯片组上的硬件，不是AMD GPU中，我把它列在这里是因为IOMMU 的作用本质上是GMC模块在虚拟化方案中的延申和继承，后面详细描述）</li>
 </ul>
 <p>好了，接下来就是非硬件虚拟化的block了，说来也无奈，这个非硬件虚拟化的block才是GPU中最复杂，最庞大的模块：Graphic Pipeline，没错！就是这个GFX Pipeline 负责渲染你吃鸡时看到的所有的花草树木，建筑，敌人。。。AMD的人简称它为pipeline或GFX（计算机3D图形学就有pipeline这个软件概念，对应到GFX engine上就有硬件pipeline了，硬件pipeline实现了软件pipeline定义的功能）。</p>
-<p>AMD的GPU虚拟化方法和CPU多进程切换是类似的，即分时复用：AMD的HMD会给每一个VF 一定的时间片（例如6毫秒），时间片内GFX属于它，到点后就把GFX调度到另一个VF，如此每个VF 并不知道它此时是否占有GFX，也不需要知道。每一个VF只需要提交command到GFX ring上就可以了（GFX ring的作用就是让OpenGL/D3D 等User Mode Driver 提交cmd的一段环形buffer，CPU写，GPU读取并执行），当时间片切到它时cmd会被处理，当时间片用完后没有完成的cmd会被抢占（称之为MCBP，Middle of  Command Buffer Preemption， 我会抽空写一篇文章简单描述AMD的MCBP实现），抢占后GFX 会被调度到另一个VF，当下一次之前被抢占的VF 得到GFX 时，它之前被抢占的那个cmd会继续执行 （resume execute）。</p>
-<p>AMD的GPU和Intel的一样，都需要访问真正的物理内存地址，因此必须要把GPA 转为 HPA。由于QEMU知道有VF pass through 给了虚拟机，因此在虚拟机开机前QEMU 就为每一个VF建立了一张地址转换表格，该表格实现GPA 2 HPA，因此一旦有command提交到VF的GFX/GPU上时GFX/GPU正常执行，当GFX/GPU需要读取内存时，GPU会把地址送给GMC，GMC会把地址送出到PCIE总线上的IOMMU，IOMMU会按表格先把GMC给的GPA 转为HPA，并读取内容，最后把内容返回给GMC（如果是GPU 写入内存也是类似的套路）。因此整个过程除了两个硬件模块（GMC，IOMMU）没有其他软件或者硬件模块知道这件事儿，GPA 2 HPA对其他模块来说就是透明的。</p>
+<p>AMD的GPU虚拟化方法和CPU的进程切换是类似的，即分时复用：AMD的HMD（称为GIM）会给每一个VF 一定的时间片（例如6毫秒），时间片内GFX属于它，到点后就把GFX调度到另一个VF，如此每个VF 并不知道它此时是否占有GFX，也不需要知道。每一个VF只需要提交command到GFX ring上就可以了（GFX ring的作用就是让OpenGL/D3D 等User Mode Driver 提交cmd的一段环形buffer，CPU写，GPU读取并执行），当时间片切到它时cmd会被处理，当时间片用完后没有完成的cmd会被抢占（称之为MCBP，Middle of  Command Buffer Preemption， 我会抽空写一篇文章简单描述AMD的MCBP实现），抢占后GFX 会被调度到另一个VF，当下一次之前被抢占的VF 得到GFX 时，它之前被抢占的那个cmd会继续执行 （resume execute）。</p>
+<p>AMD的GPU和Intel的一样，都需要访问真正的物理内存地址，因此必须要把GPA 转为 HPA。由于QEMU知道有VF pass through 给了虚拟机，因此在虚拟机开机前QEMU 就为每一个VF建立了一张地址转换表格，该表格实现GPA 2 HPA，因此一旦有command提交到VF的GFX ring （GFX ring所占用的地址同样被IOMMU 转换后再让GPU 读取）后 GFX 正常执行，当GFX/GPU需要读取内存时，GPU会把地址送给GMC，GMC会把地址送出到PCIE总线上的IOMMU，IOMMU会按表格先把GMC给的GPA 转为HPA，并读取内容，最后把内容返回给GMC（如果是GPU 写入内存也是类似的套路）。因此整个过程除了两个硬件模块（GMC，IOMMU）没有其他软件或者硬件模块知道这件事儿，GPA 2 HPA对其他模块来说就是透明的。</p>
 <p>当然GPU也不是访问任何地址都需要IOMMU， 当GPU 访问自己的显存（local Video Memory）时完全在GMC内部decode地址，所以性能非常好，不走IOMMU 的translate。</p>
 <p>综上所述AMD的虚拟化方案不需要修改大量的KMD代码，只要改大约10%的代码就能把普通的KMD 运用到虚拟机里面，原理简述到此为止，现在步入正题。</p>
-<h2 id="AMD-GPU-虚拟化现有调度方案及其缺点"><a href="#AMD-GPU-虚拟化现有调度方案及其缺点" class="headerlink" title="AMD GPU 虚拟化现有调度方案及其缺点"></a>AMD GPU 虚拟化现有调度方案及其缺点</h2><p>在本文发表前AMD使用的GPU 调度方案称为round-robin模式，顾名思义就是一个一个轮流来，每个VF 一段时间片，未来一段时间内AMD会上线本文介绍的新模式，我称之为on-demand模式，当然名字可能会被高层改得更优雅诗意一点，毕竟我只是个搬砖的粗人。</p>
-<p>round-robin 模式简单说就是给每一个VF 一段固定的时间片，用完就对该VF做抢占（抢占就是让GPU停下来，类似于CPU的进程切换，都需要时间一些开销），抢占后再调度到下一个VF，我们这里举例说明这个方法的缺点，请看下图（下图假设每个VF 分配4毫秒时间片):</p>
+<h2 id="AMD-GPU-虚拟化现有调度方案及其缺点"><a href="#AMD-GPU-虚拟化现有调度方案及其缺点" class="headerlink" title="AMD GPU 虚拟化现有调度方案及其缺点"></a>AMD GPU 虚拟化现有调度方案及其缺点</h2><p>在本文发表前AMD使用的GPU 调度方案称为round-robin模式，顾名思义就是一个一个轮流来，每个VF 一段时间片，未来一段时间内AMD会给某些客户试用笔者开发的新模式，我称之为on-demand模式，当然名字可能会被高层改得更优雅诗意一点，毕竟我只是个搬砖的粗人。</p>
+<p>round-robin 模式简单说就是给每一个VF 一段固定的时间片，用完就对该VF做抢占（抢占就是让GPU停下来，类似于CPU的进程切换，都需要一些时间开销），抢占后再调度到下一个VF，我们这里举例说明这个方法的缺点，请看下图（下图假设每个VF 分配4毫秒时间片):</p>
 <p><img src="/2018/07/27/on-demand-scheduling/round-robin-scheduling.png" alt=""></p>
 <p>请仔细看这张图，它清晰准确地反映了round-robin模式最大的缺点：</p>
-<p>该图给定两个VF分别对应一个虚拟机，每个虚拟机的CPU 都在同一时刻对各自的VF提交了一个cmd要求绘图操作，VF0 先得到了时间片，由于绘图操作只需要2毫秒于是VF0没有任何延迟地就完成了工作，共花3毫秒完成了这一桢（假设GPU花费2毫秒，CPU收到中断通知并检查结果花费1毫秒）。由此可以算出对VF0而言这一贞的fps是1000/3 即 333桢每秒。</p>
-<p>VF1也在跑同样的游戏，却得到了差很多的结果：VF1的CPU提交command后，由于GPU不在VF1上，因此一直过了4毫秒它才得到GPU资源，然后花2毫秒完成这一桢，CPU再花1毫秒检查，最终这一桢共花了7毫秒，可以算得fps为 1000/7 即 140桢每秒， 只有VF0的一半都不到。</p>
-<p>根本原因就是VF在得到GPU资源后，并没有充分利用，例如：</p>
-<ul>
-<li>它的cmd非常快可以完成（比如2毫秒），而且完成后CPU有其他事情要处理，并没有立刻提交另一条cmd。</li>
-<li><p>这个虚拟机开启了VSYNC，也就是每秒锁定60桢，因此如果2毫秒画完了一桢，CPU会等16毫秒才会发起第二桢的submit。</p>
+<p>该图给定两个VF分别对应两个虚拟机，每个虚拟机的CPU 都在同一时刻对各自的VF提交了一个cmd，假设VF0恰巧先得到了时间片（如图），由于该cmd只需要2毫秒就能完成，于是VF0没有任何延迟地就完成了工作，共花3毫秒完成了这一桢（假设GPU花费2毫秒，CPU收到中断通知，检查结果，汇报给UMD花费1毫秒）。由此可以算出对VF0而言这一桢的fps是1000/3 即 333桢每秒。</p>
+<p>VF1也在跑同样的游戏，却得到了差很多的结果：VF1的CPU提交cmd后，由于GPU不在VF1上，因此过了4毫秒它才得到GPU资源，然后同样花2毫秒完成这一桢，CPU再花1毫秒善后，最终这一桢共花了7毫秒，可以算得fps为 1000/7 即 140桢每秒， 只有VF0的一半都不到。</p>
+<p>根本原因就是VF在得到GPU资源后，并没有充分利用：</p>
+<ol>
+<li>它的cmd非常快可以完成（2毫秒），而且完成后CPU需要准备资源或其它逻辑运算，并没有立刻提交另一条cmd 。</li>
+<li><p>这个虚拟机开启了VSYNC，每秒锁定60桢，因此如果3毫秒完成了一桢，CPU会等16毫秒才会发起第二桢。</p>
 </li>
-<li><p>非但VF得到GPU后没有充分利用，它还占着茅坑不拉屎，它没有一种机制让虚拟机可以决定把GPU 让给有需要的乘客。。。同时hypervisor在调度完GPU后并不会通过轮询的方式检查该VF 哪一科已经不用GPU了（非常消耗CPU资源的做法）。hypervisor仅仅是陷入睡眠，直到时间片用完后会有中断唤醒hypervisor去做GPU调度（world switch）。</p>
+<li><p>VF得到GPU的4毫秒时间片后占着茅坑不拉屎，比如该虚拟机的CPU正在处理一些非常耗时的操作，因此VF 白白占着GPU 而不下任何cmd。</p>
 </li>
-</ul>
+</ol>
 <p><em>BTW：AMD把GPU调度工作称为“world switch”，每一个虚拟机是一个world，把GPU从VF0调度到VF1 就是一次world switch作业。</em></p>
-<h2 id="为什么需要这套”on-demand“调度策略"><a href="#为什么需要这套”on-demand“调度策略" class="headerlink" title="为什么需要这套”on-demand“调度策略"></a>为什么需要这套”on-demand“调度策略</h2><p>显然round-robin的方法只有在一种情况下不会白白浪费GPU资源，那就是任何一个VF 都在永远不停地提交cmd给GPU，但这显然是少数情况，对于多数云游戏客户而言，虚拟机只会跑一个GPU 负载不太大的游戏，因此这种情况下GPU 大部分时间都是闲置的，并且会出现每个VF都时不时掉帧，卡顿，就像上面实例图中的VF1，这个现象我们称之为”latency“</p>
-<p>所以为什么需要这套策显而易见，为了更好地让多个虚拟机用户同时在一张AMD GPU 上玩游戏！！！</p>
-<h2 id="新的”on-demand“调度策略"><a href="#新的”on-demand“调度策略" class="headerlink" title="新的”on-demand“调度策略"></a>新的”on-demand“调度策略</h2><p>按需调度策略的精髓是三点：</p>
+<h2 id="为什么需要这套”on-demand“调度策略"><a href="#为什么需要这套”on-demand“调度策略" class="headerlink" title="为什么需要这套”on-demand“调度策略"></a>为什么需要这套”on-demand“调度策略</h2><p>显然round-robin的方法只有在一种情况下不会白白浪费GPU资源，那就是任何一个VF 都在永远不停地提交cmd给GPU，但这显然是少数情况，对于多数云游戏客户而言，虚拟机只会跑一个GPU 负载不太大的游戏，因此这种情况下GPU 大部分时间都是闲置的，而且还会出现每个VF都时不时掉帧，卡顿的现象，就像上图中的VF1，这个现象我们称之为”latency“。所以需要一套新的调度策略尽量避免round-robin策略的浪费GPU资源的问题。</p>
+<h2 id="新的”on-demand“调度策略"><a href="#新的”on-demand“调度策略" class="headerlink" title="新的”on-demand“调度策略"></a>新的”on-demand“调度策略</h2><p>按需调度策略的要点是三点：</p>
 <ol>
 <li>【yield 机制】虚拟机需要在确认自己不用GPU资源时竟快通知hypervisor，并且hypervisor需要竟快做world switch</li>
 <li>【电梯算法】每次做world switch前，hypervisor需要先check一下这个VF是不是有pending cmd（必须实现非常快速check否则就是浪费GPU时间），如果没有的话压根就不用调度给他GPU 资源，直接下一个即可。</li>
-<li>【锁死桢速度】虚拟机运行的游戏最好给他定一个vsync，例如60hz或30hz，如此一来当一贞画完时，该虚拟机不会立刻submit下一帧的cmd，而是会有一定时间的等待，这就可以激发精髓1了。</li>
+<li>【锁死桢速度】虚拟机运行的游戏最好给他定一个vsync，例如60hz或30hz，如此一来当一贞画完时，该虚拟机不会立刻submit下一帧的cmd，而是会有一定时间的等待，这就可以激发要点1。</li>
 </ol>
-<p>第一点和第二点是最核心的，第三点根据客户实际情况可以调整。下面说说怎么做到第一和第二点。</p>
-<p>第一点我给它起了一个名字来描述它这个feature – ”VF yield“，顾名思义VF 可以yield自己从而提前让出GPU资源</p>
-<h3 id="1-YIELD-机制"><a href="#1-YIELD-机制" class="headerlink" title="1. YIELD 机制"></a>1. YIELD 机制</h3><p>该feature需要两个软件模块同时配合，1）guest的KMD； 2）hypervisor端的GIM （GIM是 在hypervisor端的一个HMD模块，主要职责就是执行world switch）。 guest KMD 需要有一个方法可以立即判断出自己当前时刻是否不需要GPU资源，如果不需要就立刻通知GIM，GIM收到通知后立刻做world switch。</p>
-<p>guest KMD 如何判断此时此刻是否需要GPU资源? 这个方法是一个tricky，但是目前我只在Linux系统上实现了，windows guest我没有想出匹配的方案，也许需要windows内核专家帮忙。下面讲在Linux guest上的实现：</p>
-<p>在gpu scheduler中 （gpu scheduler 是指guest kmd中的模块，并不是GIM中的做world switch的调度器，不熟悉AMD软件的童鞋比较容易困惑，这个模块的功能是公平地把每个进程的job/cmd按round-robin的方式提交给ring buffer），每一个cmd提交到ring buffer后，都会在gpu scheduler维护的一个双向链表中插入一个job来代表该cmd，当一个job/cmd完成后，中断会通知CPU，CPU 会把相应的job从该双向链表中删除，整个过程都是有同步保护的，因此这个链表可以完美地反映对这个VF 而言哪些job正在运行，哪些job刚刚完成。</p>
-<p><em>note: 该双向链表叫 “ring_mirror_list”, 名字是我当初写代码时随便起的</em></p>
-<p>下面讲这个trick，当一个job提交时，如果判断mirror list是空的，就说明当前ring突然从idle状态切换到了busy状态，我把这种case称作“<strong>first job on empty ring</strong>”，如果job提交时mirror list 不是空的，说明这个job提交的时刻该VF 上已经有cmd正在让GPU 处理中（是逻辑上正在让GPU 处理中，因为GPU 此时可能调度在另一个VF 上），因此这个job就不是 “<strong>first job on empty ring</strong>”。ok理解了这点再继续理解对应的另一个概念— “<strong>last job finish</strong>”： 当一个job完成时中断会通知CPU，于是CPU会把这个job从mirror list中remove掉，然后再去check  mirror list，看是否mirror list已经empty了，如果empty那就说明这个刚刚finish的job是这个VF 最后一个需要处理的job，暂时并没有其他job/cmd提交到VF 上。</p>
-<p>有了以上tricks，guest KMD 可以对每一条ring瞬间检查出是否不再需要该ring所对应的GPU 资源，或者该 ring是否有一个job初次提交从而可以告诉GIM自己需要被调度，不要被电梯算法直接skip掉（初次提交意味着提交时，该ring的mirror list 是空的）。</p>
-<p>如果不在gpu scheduler里面做手脚实现这套trick，只能用measuring的方法检测GPU是否idle，那会非常低效率（因为检测需要时间去取得采样点，而这个过程就是对GPU资源的白白的浪费）。</p>
-<p>由于AMD的GPU比较复杂，因此world switch的调度对象不是一个GFX engine，而是逻辑上三个engine，分别是：</p>
-<ol>
-<li>GFX engine/ring （1条）</li>
-<li>compute engine/rings ( 8 条)</li>
-<li>SDMA engine/rings (2 条)</li>
-</ol>
+<p>第一点和第二点是最核心的，第三点根据客户实际情况可以调整。下面说说怎么做到第一和第二点。第一点我给它起了一个名字来描述这个feature – ”VF yield“，顾名思义VF 可以yield自己从而提前让出GPU资源</p>
+<h3 id="1-YIELD-机制"><a href="#1-YIELD-机制" class="headerlink" title="1. YIELD 机制"></a>1. YIELD 机制</h3><p>该feature需要两个软件模块同时配合，1）guest的KMD； 2）hypervisor端的HMD – GIM （GIM是 在hypervisor端的一个HMD模块，主要职责就是执行world switch）。 guest KMD 需要有一个方法可以立即判断出自己当前时刻是否不需要GPU资源，如果不需要就立刻通知GIM，GIM收到通知后立刻做world switch。</p>
+<p>guest KMD 如何判断此时此刻是否需要GPU资源? 这个方法是一个trick，但是目前我只在Linux系统上实现了，windows guest需要用其它方法变通实现，我暂时只关注Linux，下面讲在Linux guest上的实现：</p>
+<p>在gpu scheduler中 （gpu scheduler 是指guest kmd中的模块，并不是GIM中的做world switch的调度器，不熟悉AMD软件的童鞋比较容易困惑，这个模块的功能是公平地把每个进程的cmd公平的交错提交给GFX ring），每一个cmd提交到ring buffer后，都会在gpu scheduler维护的一个双向链表中插入一个job来代表该cmd，当一个jcmd完成后，中断会通知CPU，CPU 会把相应的job从该双向链表中删除，整个过程都是有同步锁保护，这个链表可以完美地反映对这个VF 而言哪些job/cmd正在运行，哪些刚刚完成，哪些还没开始。</p>
+<p><em>note: 该双向链表叫 “ring_mirror_list”</em></p>
+<p>下面讲这个trick，当一个job提交时，如果判断mirror list是空的，就说明当前ring突然从idle状态切换到了busy状态，我把这种case称作“<strong>idle2busy</strong>”，如果job提交时mirror list 不是空的，说明这个job提交的时刻该VF 上已经有cmd正在让GPU 处理中（是逻辑上正在让GPU 处理中，因为GPU 此时可能调度在另一个VF 上），因此这个job的提交就不会触发 <strong>“idle2busy”</strong>。ok理解了这点再继续理解与之相反的一个概念— “<strong>busy2idle</strong>”： 当一个job完成时中断会通知CPU，于是CPU会把这个job从mirror list中remove掉，然后再去check  mirror list，看是否mirror list已经empty了，如果empty那就说明这个刚刚finish的job是这个VF 最后一个需要处理的job，且这一时刻没有其他cmd 悬挂在GFX ring 上，因此是一个<strong>“busy2idle”</strong> 的状态切换。</p>
+<p>有了以上tricks，guest KMD 可以对每一条ring （AMD的GPU比较复杂，除了GFX ring外还有很多其他ring，例如DMA ring， compute ring， multimedia ring）瞬间检查出是否不再需要该ring所对应的GPU 资源（有cmd完成时可以检测出是否为idle2busy），或者该 ring是否有一个job初次提交从而可以知会GIM自己需要被调度，不要被电梯算法直接skip掉（有cmd提交到ring时可以检测出是否有busy2idle）。如果不在guest KMD的gpu scheduler里面做手脚，而是用measuring的方法去测量GPU是否idle，那会非常低效率，因为测量这个过程本身就需要时间去取采样点，而测量所消耗的时间就是对GPU资源的白白的浪费。</p>
 <p><em>note: ring buffer的概念非常普遍，Intel，AMD，Nvidia 都有，这里就不赘述了，不懂的同学自己baidu/google吧，简单说就是一个环形buffer，GPU 读取cmd并执行，CPU 写入cmd。</em></p>
-<p>因此，我们不能仅仅针对GFX ring 做监测，要对所有的ring都做，具体实现是：</p>
-<p>当一条ring有job提交时，如果判断这个job是”first job on empty ring”这种case，就set_bit(ring-&gt;index，&amp;rings_status)，用以表示该ring是busy状态。（每条ring都有一个索引 index）</p>
-<p>当一条ring有job完成时，如果判断ring buffer已经empty了，就认为刚刚完成的job/cmd是“last job finish”, 对于这种case，我们会用clear_bit(ring-&gt;index, &amp;rings_status)，用以表示该ring是idle状态，并且会马上check 是否rings_status为0，如果为0说明此时此刻所有的ring都idle，于是立刻发通知给GIM （如何发通知就不在这里描述了，方法多样），GIM收到通知后立刻做 world switch，从而节省了时间片。当然如果不幸在world switch时该VF 又有cmd提交到某条ring上那也是天命如此，救不了了，我们不必钻牛角尖。</p>
-<h3 id="2-电梯算法"><a href="#2-电梯算法" class="headerlink" title="2. 电梯算法"></a>2. 电梯算法</h3><p>电梯算法这个名字是我老板起的，他在两年前首次创新性地提出了这个想法并实现了它，不过当时他是在GIM中用读取寄存器的方法来判断的（可以读取某些寄存器判断给定的VF 是否有pending job，没有的话跳过它下一个），此处我礼貌性地AT一下我老板：@Daniel Wang</p>
-<p>由于一些硬件的policy原因，我老板的电梯算法不能在MI25上用了，因为部分寄存器不再可以读取，因此我实现了一个纯软件的实现：利用guest gpu scheduler，方法是：</p>
-<ul>
-<li>在guest 端：如果判断这次job/cmd提交是“<strong>first job on empty ring</strong>”这个case就把<strong>TRUE</strong>写到一个mailbox寄存器（这个mailbox寄存器 GIM可以读，并且每个VF 都有各自的mailbox寄存器因此不会冲突），如果一个job完成了并判断是“<strong>last job finish</strong>”这个case就把该寄存器设为<strong>FASLE</strong>。</li>
-<li>在GIM端：每次GIM在做world switch时可以先check这个VF的mailbox寄存器，如果为<strong>TRUE</strong>就正常调度它，如果为<strong>FALSE</strong>就跳过，调度到下一个（当然下一个VF也要如法炮制地check）。</li>
-</ul>
-<p>”锁死桢速度“ 这个方法我就不描述了，它是显而易见的。</p>
-<h3 id="3-效果如何？看图说话"><a href="#3-效果如何？看图说话" class="headerlink" title="3. 效果如何？看图说话"></a>3. 效果如何？看图说话</h3><p>下面请看使用了“on-demand”调度策略后的图形：</p>
+<p>由于AMD的GIM是一次world switch同时作用于 GFX/COMPUTE/DMA 这些GPU资源的，所以我们不能仅仅针对GFX ring 采用这个trick去监测，要对所有的ring都check，具体实现是：</p>
+<ol>
+<li>当任意一条ring有cmd提交时，如果判断这个job是触发了”idle2busy”, 则：set_bit(ring-&gt;index，&amp;rings_status)，用以表示该ring是busy状态。（每条ring都有一个索引 index）</li>
+<li>当任意一条ring有cmd完成时，如果判断ring buffer已经空了，就认为该job触发了“busy2idle”, 则 :clear_bit(ring-&gt;index, &amp;rings_status)，用以表示该ring是idle状态了</li>
+<li>当任意一条ring触发了”busy2idle“事件，立马check 是否rings_status为0，若为0则说明此时此刻所有的ring都idle，于是立刻通知GIM 这个VF需要”yield“（AMD用中断方式让guest发消息给GIM），GIM收到YIELD通知后立刻做 world switch，从而赚取了这个VF 本来白白浪费了的时间片。当然如果不幸在world switch后该VF 又立刻有cmd提交那也是天命如此，不必钻牛角尖，这个世界上没有完美的调度方案。</li>
+</ol>
+<h3 id="2-电梯算法"><a href="#2-电梯算法" class="headerlink" title="2. 电梯算法"></a>2. 电梯算法</h3><p>电梯算法这个名字是我老板起的，他在两年前首次创新性地提出了这个想法并实现了它，不过当时他是在GIM中用读取寄存器的方法来判断的（可以读取某些寄存器判断给定的VF 是否有pending job，没有的话跳过它下一个）。由于一些硬件的policy原因，电梯算法不能在MI25上用了，有部分VF寄存器不再允许访问，因此我实现了一个纯软件的实现：同样是利用”idle2busy”事件，方法是：</p>
+<ol>
+<li>若任意一条ring触发“idle2busy”， 则：set_bit(ring-&gt;index，&amp;rings_status)，用以表示该ring是busy状态。(此条规则上面YIELD机制提过) ，并且检查是否 (ring_status &amp; ring_status-1) == 0, 如果为 0 就把<strong>TRUE</strong>写到一个mailbox寄存器（这个mailbox寄存器 GIM可以读，并且每个VF 都有各自的mailbox寄存器因此不会冲突）</li>
+<li>当任意一条ring触发了”busy2idle“事件，立马check 是否rings_status为0，若为0则说明此时此刻所有的ring都idle，于是把<strong>FALSE</strong>写入mailbox寄存器。</li>
+<li>在GIM端：每次GIM做world switch时可以先检查该VF的mailbox寄存器，若为<strong>TRUE</strong>就正常调度它，否则就跳过。</li>
+</ol>
+<h3 id="3-效果如何？看图说话"><a href="#3-效果如何？看图说话" class="headerlink" title="3. 效果如何？看图说话"></a>3. 效果如何？看图说话</h3><p>下面请看使用了“on-demand”策略后的图：</p>
 <p><img src="/2018/07/27/on-demand-scheduling/on-demand-scheduling.png" alt=""></p>
-<p>下图为round-robin，贴出来方便对比:</p>
+<p>下图为原始的round-robin策略，贴出来方便对比:</p>
 <p><img src="/2018/07/27/on-demand-scheduling/round-robin-scheduling.png" alt=""></p>
-<p>为了实现整个思路，GIM里面的world switch调度实现改写了很多，因为需要做到实时，也即是一旦VF 要求yield，GIM要做到立刻做world switch，否则就会白白浪费GPU的宝贵时间片，原始的GIM在实时方面做得不好，因此我用kernel thread重写了world switch的逻辑实现，基本做到了50us以内响应guest发起的yield信号并开始执行world switch，原本的GIM需要300 ~ 500 us。</p>
-<p>我目前在MI25上实现了这个新的调度策略，过段时间我会把该策略移植到S7150的soft stack上，毕竟S7150有不少国内客户正在使用，等我确认合法后我会把s7150的方案源代码上传到我自己的github（GIM + guest KMD)，至于MI25的方案目前我不会打算提交到github，公司还没有正式把它open source。</p>
-<p><em>注：AMD官方的S7150的guest代码已经upstream了，下载最新的kernel就能看到，S7150的GIM代码没有upstream，但是open source了，在GIT上有，我不记得具体地址了。。。</em></p>
-<h3 id="4-为什么windows-guest做不了"><a href="#4-为什么windows-guest做不了" class="headerlink" title="4. 为什么windows guest做不了"></a>4. 为什么windows guest做不了</h3><p>对于windows guest，由于它的gpu scheduler是微软自己实现的，因此逻辑都在windows 内核中，于是windows KMD 没有办法抓到ring的status，不像Linux的gpu scheduler，它是我们开发人员自己实现的所以可以随意improve。后续有可能还是要研究windows上该如何做，也许windows内核专家有办法。</p>
-<h2 id="具体游戏测试结果"><a href="#具体游戏测试结果" class="headerlink" title="具体游戏测试结果"></a>具体游戏测试结果</h2><p>做图比较困难，等我把fps统计数据转化为通俗易懂的fps曲线图后再放出来给童鞋们一个直观的感受吧，我会测试8VF下跑游戏的效果，会有on-demand 调度 VS round-robin 调度的PK 图。</p>
+<p>为了实现整个思路，GIM里面的world switch调度实现改写了很多，因为需要做到实时性（即是一旦VF 要求yield，GIM要立刻做world switch，否则就会浪费GPU宝贵时间片)，而原始的GIM在实时方面做得不够好，笔者的实现基本做到了50us以内响应guest发起的yield信号并开始执行world switch，原本的GIM需要300 ~ 500 us。</p>
+<p>目前在MI25（vega10）上实现了这个新的调度策略，过段时间有空的话我会把该策略移植到S7150（tonga）上，毕竟S7150有不少国内客户正在使用，确认合法后我会把s7150的方案源代码上传到我自己的github（GIM + guest KMD)。</p>
+<p><em>注：AMD官方的S7150的guest代码已经upstream了，下载最新的kernel就有，S7150的GIM代码没有upstream，但是open source了，在GIT上有，我不记得具体地址了。。。</em></p>
+<h3 id="4-为什么windows-guest需要用其他方法变通实现YIELD"><a href="#4-为什么windows-guest需要用其他方法变通实现YIELD" class="headerlink" title="4. 为什么windows guest需要用其他方法变通实现YIELD"></a>4. 为什么windows guest需要用其他方法变通实现YIELD</h3><p>对于windows guest，由于它的gpu scheduler是微软自己实现的，因此逻辑都在windows 内核中，于是windows KMD 没有办法抓到ring的status，不像Linux的gpu scheduler，是我们内核驱动开发人员自己实现的所以可以随意improve。后续有可能还是要研究windows上该如何做，有个变通方法暂时不表，因为该方法只有了解AMD 硬件的人才看得懂，因此没有太大意义在此处描述。</p>
+<h2 id="具体游戏测试FPS图"><a href="#具体游戏测试FPS图" class="headerlink" title="具体游戏测试FPS图"></a>具体游戏测试FPS图</h2><p>等我把fps统计数据转化为通俗易懂的fps曲线图后再放出来给童鞋们一个直观的感受吧，我会测试8VF下</p>
 <p>Farewell</p>
 
       
@@ -548,7 +541,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#采用按需调度后的效果"><span class="nav-number">1.</span> <span class="nav-text">采用按需调度后的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU虚拟化方案简介"><span class="nav-number">2.</span> <span class="nav-text">AMD GPU虚拟化方案简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU-虚拟化现有调度方案及其缺点"><span class="nav-number">3.</span> <span class="nav-text">AMD GPU 虚拟化现有调度方案及其缺点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要这套”on-demand“调度策略"><span class="nav-number">4.</span> <span class="nav-text">为什么需要这套”on-demand“调度策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新的”on-demand“调度策略"><span class="nav-number">5.</span> <span class="nav-text">新的”on-demand“调度策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-YIELD-机制"><span class="nav-number">5.1.</span> <span class="nav-text">1. YIELD 机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-电梯算法"><span class="nav-number">5.2.</span> <span class="nav-text">2. 电梯算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-效果如何？看图说话"><span class="nav-number">5.3.</span> <span class="nav-text">3. 效果如何？看图说话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-为什么windows-guest做不了"><span class="nav-number">5.4.</span> <span class="nav-text">4. 为什么windows guest做不了</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体游戏测试结果"><span class="nav-number">6.</span> <span class="nav-text">具体游戏测试结果</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#采用按需调度后的效果"><span class="nav-number">1.</span> <span class="nav-text">采用按需调度后的效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU虚拟化方案简介"><span class="nav-number">2.</span> <span class="nav-text">AMD GPU虚拟化方案简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU-虚拟化现有调度方案及其缺点"><span class="nav-number">3.</span> <span class="nav-text">AMD GPU 虚拟化现有调度方案及其缺点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要这套”on-demand“调度策略"><span class="nav-number">4.</span> <span class="nav-text">为什么需要这套”on-demand“调度策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新的”on-demand“调度策略"><span class="nav-number">5.</span> <span class="nav-text">新的”on-demand“调度策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-YIELD-机制"><span class="nav-number">5.1.</span> <span class="nav-text">1. YIELD 机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-电梯算法"><span class="nav-number">5.2.</span> <span class="nav-text">2. 电梯算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-效果如何？看图说话"><span class="nav-number">5.3.</span> <span class="nav-text">3. 效果如何？看图说话</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-为什么windows-guest需要用其他方法变通实现YIELD"><span class="nav-number">5.4.</span> <span class="nav-text">4. 为什么windows guest需要用其他方法变通实现YIELD</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体游戏测试FPS图"><span class="nav-number">6.</span> <span class="nav-text">具体游戏测试FPS图</span></a></li></ol></div>
             
 
           </div>
