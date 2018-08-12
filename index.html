@@ -310,16 +310,11 @@
       
         
           
-            <p><em>青云原创, GPU 虚拟化</em></p>
-<h2 id="采用按需调度后的效果"><a href="#采用按需调度后的效果" class="headerlink" title="采用按需调度后的效果"></a>采用按需调度后的效果</h2><p>在正文开始前，先用文字秀一下成果：</p>
-<ul>
-<li>在物理机上跑Nexuiz测试，得到了180的average fps，最低的fps为60 。</li>
-<li>采用新调度算法前，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo，每一个用户都得到了40fps的average贞速度，并且每一个用户都会间歇性得感受到高延迟问题，桢速度曲线为方波结构，与物理机曲线拟合度较低。</li>
-<li>采用新调度算法后，用Nexuiz游戏做测试，4个虚拟机用户同时运行demo测试，每一个用户都得到了100 fps的average 贞速度，并且每一个用户的最低贞速度都较原始调度方案提高，桢速度曲线与物理机曲线拟合度较高。</li>
-</ul>
-<p><em>注：上述结果是剔除掉了游戏载入时的统计，载入时段的几秒内FPS波动太大，高的有1400，低的只有4。</em></p>
-<h2 id="AMD-GPU虚拟化方案简介"><a href="#AMD-GPU虚拟化方案简介" class="headerlink" title="AMD GPU虚拟化方案简介"></a>AMD GPU虚拟化方案简介</h2><p>note：本文面向对GPU硬件和驱动有一定基础的同学，当然没有基础也可以嗑瓜子看看</p>
+            <p><em>青云原创, GPU 虚拟化 </em></p>
+<p>转载请注明出处：<strong><em><a href="https://navycloud.github.io/" target="_blank" rel="noopener">https://navycloud.github.io/</a></em></strong></p>
 <p>本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇。</p>
+<p>note: 本文面向对GPU硬件和驱动有一定基础的同学，当然没有基础也可以嗑瓜子看看</p>
+<h2 id="AMD-GPU虚拟化方案简介"><a href="#AMD-GPU虚拟化方案简介" class="headerlink" title="AMD GPU虚拟化方案简介"></a>AMD GPU虚拟化方案简介</h2><p>首先简单介绍一下AMD 的GPU 虚拟化方案。</p>
 <p>AMD给客户的虚拟化方案整体上是一套基于SR-IOV的硬件虚拟化方案（关于SR-IOV读者可以自己google之），所谓基于硬件的虚拟化就是尽量用硬件和firmware去实现GPU的基本功能，且尽量维持物理机GPU驱动软件的复用程度。Intel的方案是基于软件的GPU虚拟化，他们的方案中guest KMD（guest kernel mode driver） 和bare-metal（物理机系统称为bare-metal）相比有较大的改动，主要是command submit和memory manage部分，比如intel的command submit在guest KMD中实际上并不会把command 提交到hardware上，而是通过hyper call的方式提交给HMD (hypervisor module driver），当然hyper-call只是一种说法，实际的做法可以通过修改QEMU来实现而不一定必须是hyper-call，例如修改QEMU代码，创建一种新的虚拟GPU 设备，并且为这个设备的MMIO（寄存器）做trap。当虚拟机 access这些MMIO 时QEMU就会拦截并调用vendor实现的callback函数，从而实现hyper-call的作用，例如guest需要吧一段虚拟机内存映射到GPU 地址空间时就会去设置一些MMIO寄存器， 而这些MMIO寄存器都是QEMU 虚拟出来的并且可以截获，从而让HMD就有机会把这段guest physical  address 转成 host physical address 后再映射到GPU 地址空间，把 GPA 专为 HPA的原因是：<strong>GPU只能访问真正的物理内存地址，虚拟机中的guest physical address对于GPU而言是无意义的。</strong></p>
 <p><em>注：以上对intel GPU虚拟化方案的技术描述完全是我个人不责任地主观臆断，且没有任何事实依据，本人暂时也没时间去研究 Intel的虚拟化开源代码，intel的同仁如果觉得我胡说八道请轻微diss一下即可。</em></p>
 <p>反观AMD的方案，由于利用SR-IOV 这个标准，由此在host端可以看到多个（目前最大16个）virtual function device， 也就是虚拟出来的PCIe 显卡（简称VF），然后把这些VF pass through 给QEMU虚拟机，因此从软件上讲QEMU完全不知道这些VF 是虚拟出来的。那么VF 能不能完全像物理GPU 一样进行绘图渲染呢？</p>
@@ -372,9 +367,9 @@
 </ol>
 <h3 id="2-电梯算法"><a href="#2-电梯算法" class="headerlink" title="2. 电梯算法"></a>2. 电梯算法</h3><p>电梯算法这个名字是我老板起的，他在两年前首次创新性地提出了这个想法并实现了它，不过当时他是在GIM中用读取寄存器的方法来判断的（可以读取某些寄存器判断给定的VF 是否有pending job，没有的话跳过它下一个）。由于一些硬件的policy原因，电梯算法不能在MI25上用了，有部分VF寄存器不再允许访问，因此我实现了一个纯软件的实现：同样是利用”idle2busy”事件，方法是：</p>
 <ol>
-<li>若任意一条ring触发“idle2busy”， 则：set_bit(ring-&gt;index，&amp;rings_status)，用以表示该ring是busy状态。(此条规则上面YIELD机制提过) ，并且检查是否 (ring_status &amp; ring_status-1) == 0, 如果为 0 就把<strong>TRUE</strong>写到一个mailbox寄存器（这个mailbox寄存器 GIM可以读，并且每个VF 都有各自的mailbox寄存器因此不会冲突）</li>
-<li>当任意一条ring触发了”busy2idle“事件，立马check 是否rings_status为0，若为0则说明此时此刻所有的ring都idle，于是把<strong>FALSE</strong>写入mailbox寄存器。</li>
-<li>在GIM端：每次GIM做world switch时可以先检查该VF的mailbox寄存器，若为<strong>TRUE</strong>就正常调度它，否则就跳过。</li>
+<li>若任意一条ring触发“idle2busy”， 则：set_bit(ring-&gt;index，&amp;rings_status)，用以表示该ring是busy状态。(此条规则上面YIELD机制提过) ，并且检查是否 (ring_status &amp; ring_status-1) == 0, 如果为 0 就发中断通知GIM标记此VF为BUSY，如此该VF 下次被GIM轮询到时就不会被skip掉。(ring_status &amp; ring_status-1) == 0 说明ring_status只有一个bit是1，也就是意味着此次触发“idle2busy”事件的ring是整个GPU资源上第一个触发“idle2busy”的，因此这个时机通知GIM是合理的，我们并不需要每一条ring在触发”idle2busy”后都通知GIM，因为中断次数经量要少。</li>
+<li>当任意一条ring触发了”busy2idle“事件，立马check 是否rings_status为0，若为0则说明此时此刻所有的ring都idle，于是中断通知GIM需要对该VF 标记为IDLE，如此下次轮询到该VF时可以skip掉它。</li>
+<li>在GIM端：每次GIM做world switch时可以先检查该VF是否为BUSY，若为BUSY就正常调度它，否则就跳过。</li>
 </ol>
 <h3 id="3-效果如何？看图说话"><a href="#3-效果如何？看图说话" class="headerlink" title="3. 效果如何？看图说话"></a>3. 效果如何？看图说话</h3><p>下面请看使用了“on-demand”策略后的图：</p>
 <p><img src="/2018/07/27/on-demand-scheduling/on-demand-scheduling.png" alt=""></p>
