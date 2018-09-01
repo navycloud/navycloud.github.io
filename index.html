@@ -334,17 +334,16 @@
 <p><img src="/2018/07/27/on-demand-scheduling/round-robin-scheduling.png" alt=""></p>
 <p>请仔细看这张图，它清晰准确地反映了round-robin模式最大的缺点：</p>
 <p>该图给定两个VF分别对应两个虚拟机，每个虚拟机的CPU 都在同一时刻对各自的VF提交了一个cmd，假设VF0恰巧先得到了时间片（如图），由于该cmd只需要2毫秒就能完成，于是VF0没有任何延迟地就完成了工作，共花3毫秒完成了这一桢（假设GPU花费2毫秒，CPU收到中断通知，检查结果，汇报给UMD花费1毫秒）。由此可以算出对VF0而言这一桢的fps是1000/3 即 333桢每秒。</p>
-<p>VF1也在跑同样的游戏，却得到了差很多的结果：VF1的CPU提交cmd后，由于GPU不在VF1上，因此过了4毫秒它才得到GPU资源，然后同样花2毫秒完成这一桢，CPU再花1毫秒善后，最终这一桢共花了7毫秒，可以算得fps为 1000/7 即 140桢每秒， 只有VF0的一半都不到。</p>
-<p>根本原因就是VF在得到GPU资源后，并没有充分利用：</p>
+<p>VF1也在跑同样的游戏，但这一帧却得到了差很多的结果：VF1的CPU提交cmd后，由于GPU不在VF1上，因此过了4毫秒它才得到GPU资源，然后同样花2毫秒完成这一桢，CPU再花1毫秒善后，最终这一桢共花了7毫秒，可以算得fps为 1000/7 即 140桢每秒， 只有VF0的一半都不到。</p>
+<p>以2VF 为例，下面举例两种典型的悲剧case：</p>
 <ol>
-<li>它的cmd非常快可以完成（2毫秒），而且完成后CPU需要准备资源或其它逻辑运算，并没有立刻提交另一条cmd 。</li>
-<li><p>这个虚拟机开启了VSYNC，每秒锁定60桢，因此如果3毫秒完成了一桢，CPU会等16毫秒才会发起第二桢。</p>
-</li>
-<li><p>VF得到GPU的4毫秒时间片后占着茅坑不拉屎，比如该虚拟机的CPU正在处理一些非常耗时的操作，因此VF 白白占着GPU 而不下任何cmd。</p>
-</li>
+<li>此时VF0占有GPU资源的这5ms内有cmd扔给VF0处理，因此VF0短时间内FPS达到最高，然后VF1忍受这低延迟，低fps。如果我们粗糙地用平均fps去统计目前的性能，也许我们会一位VF0+VF1的平均fps并不低嘛，但仔细一看，VF0的fps是200桢，而VF1只有50，因此VF1的玩家是不满意的，而VF0的玩家也没有得到非常大的满足，毕竟超过60的FPS已经意义不大了。</li>
+<li>此时VF0占有GPU 资源的这5ms内并没有cmd扔给VF0处理，例如此时VM0的CPU在做一些非图形相关的计算等，或者游戏开了VSYNC所以还没有cmd扔给VF0处理，那么这个就更杯具了，因为这5ms内VF0和VF1都没有得到GPU 服务。</li>
 </ol>
+<p>另外，由于AMD显卡的按时调度是基于MCBP抢占的，而MCBP抢占往往不是立刻成功的，因为MCBP只能发生在gfx 的pipeline完成后，因此5ms时间片内如果VF0一直在忙的话，MCBP命令下达之后往往还需要过几ms甚至几白ms才能调度到另一个VF上，这也是另一个latency问题的主要原因。</p>
 <p><em>BTW：AMD把GPU调度工作称为“world switch”，每一个虚拟机是一个world，把GPU从VF0调度到VF1 就是一次world switch作业。</em></p>
 <h2 id="为什么需要这套”on-demand“调度策略"><a href="#为什么需要这套”on-demand“调度策略" class="headerlink" title="为什么需要这套”on-demand“调度策略"></a>为什么需要这套”on-demand“调度策略</h2><p>显然round-robin的方法只有在一种情况下不会白白浪费GPU资源，那就是任何一个VF 都在永远不停地提交cmd给GPU，但这显然是少数情况，对于多数云游戏客户而言，虚拟机只会跑一个GPU 负载不太大的游戏，因此这种情况下GPU 大部分时间都是闲置的，而且还会出现每个VF都时不时掉帧，卡顿的现象，就像上图中的VF1，这个现象我们称之为”latency“。所以需要一套新的调度策略尽量避免round-robin策略的浪费GPU资源的问题。</p>
+<p>为了解决这个问题，新的按需调度策略需要从如何不浪费GPU资源的角度入手：当VF得到GPU后如果占着茅坑不拉屎没有cmd执行，需要立即主动让出GPU 资源（yield 机制）。</p>
 <h2 id="新的”on-demand“调度策略"><a href="#新的”on-demand“调度策略" class="headerlink" title="新的”on-demand“调度策略"></a>新的”on-demand“调度策略</h2><p>按需调度策略的要点是三点：</p>
 <ol>
 <li>【yield 机制】虚拟机需要在确认自己不用GPU资源时竟快通知hypervisor，并且hypervisor需要竟快做world switch</li>
@@ -377,10 +376,43 @@
 <p><img src="/2018/07/27/on-demand-scheduling/round-robin-scheduling.png" alt=""></p>
 <p>为了实现整个思路，GIM里面的world switch调度实现改写了很多，因为需要做到实时性（即是一旦VF 要求yield，GIM要立刻做world switch，否则就会浪费GPU宝贵时间片)，而原始的GIM在实时方面做得不够好，笔者的实现基本做到了50us以内响应guest发起的yield信号并开始执行world switch，原本的GIM需要300 ~ 500 us。</p>
 <p>目前在MI25（vega10）上实现了这个新的调度策略，过段时间有空的话我会把该策略移植到S7150（tonga）上，毕竟S7150有不少国内客户正在使用，确认合法后我会把s7150的方案源代码上传到我自己的github（GIM + guest KMD)。</p>
+<p>实现这套调度算法，我并不是希望单纯得提高所有VF的平均VPS （但这确实达到了这个个次要目的），我的目的是减少latency的频率，从而提高每一个VF的用户体验。现在总结一下为什么新的算法可以提高每一个VF的相应速度：</p>
+<ol>
+<li>由于一旦VF发现自己不需要GPU，在时间片内它仍旧可以立即yield从而让出GPU资源，因此GPU的利用率得到了提高（结合开启vsync后，每个VF 都会有更多的机会检测出自己可以yield出GPU资源，因此效果更好），同时其他VF的cmd被更快得执行了（相对与round-robin）</li>
+<li>由于GIM在调度GPU给一个VF前会用电梯算法检查它是否有work load，没有的话直接跳过该VF，因此GPU的利用率得到了提高，同时其他VF的cmd被更快得执行了（相对与round-robin）</li>
+<li>由于MCBP本身是往往会引起一定时间的开销，而主动让出GPU资源就很好的规避了MCBP的发生（主动让出是因为检测出暂时不需要GPU资源，因此一定不是cmd执行了一半没有结束的状态，因此此时GIM对该VF下达MCBP命令后可以瞬间完成），避免了MCBP的发生就是节省了GPU的时间，因此同时其他VF的cmd被更快得执行了（相对与round-robin）</li>
+</ol>
 <p><em>注：AMD官方的S7150的guest代码已经upstream了，下载最新的kernel就有，S7150的GIM代码没有upstream，但是open source了，在GIT上有，我不记得具体地址了。。。</em></p>
 <h3 id="4-为什么windows-guest需要用其他方法变通实现YIELD"><a href="#4-为什么windows-guest需要用其他方法变通实现YIELD" class="headerlink" title="4. 为什么windows guest需要用其他方法变通实现YIELD"></a>4. 为什么windows guest需要用其他方法变通实现YIELD</h3><p>对于windows guest，由于它的gpu scheduler是微软自己实现的，因此逻辑都在windows 内核中，于是windows KMD 没有办法抓到ring的status，不像Linux的gpu scheduler，是我们内核驱动开发人员自己实现的所以可以随意improve。后续有可能还是要研究windows上该如何做，有个变通方法暂时不表，因为该方法只有了解AMD 硬件的人才看得懂，因此没有太大意义在此处描述。</p>
-<h2 id="具体游戏测试FPS图"><a href="#具体游戏测试FPS图" class="headerlink" title="具体游戏测试FPS图"></a>具体游戏测试FPS图</h2><p>等我把fps统计数据转化为通俗易懂的fps曲线图后再放出来给童鞋们一个直观的感受吧，我会测试8VF下</p>
-<p>Farewell</p>
+<h2 id="具体游戏测试FPS图"><a href="#具体游戏测试FPS图" class="headerlink" title="具体游戏测试FPS图"></a>具体游戏测试FPS图</h2><p>我用Nexuiz 这个OGL游戏做了一个对比测试，首先物理机跑下来是154 fps，然后我分别用round-robin和按需调度在4 VF下做了测试，结果如下：</p>
+<p>round-robin下，4个VF 的avg fps分别为：76，79，73，78， total一起是306。</p>
+<p>按需调度下，4个VF的avg fps分别为：94，95，120，98，total一起是407。</p>
+<p>可以看到首先avg fps就提高了25%。</p>
+<p>然后再放上三张图，分别是物理机，RR调度，以及按需调度下的FPS曲线图（RR调度取了FPS 79的那个VF  的图，按需调度去了FPS120的那个VF 的图）</p>
+<p>物理机：</p>
+<p><img src="/2018/07/27/on-demand-scheduling/nexuiz-bm.png" alt="nexuiz-bm"></p>
+<p>Round-Robin 下的某VF：</p>
+<p><img src="/2018/07/27/on-demand-scheduling/nexuiz-rr-4vf.png" alt="nexuiz-bm"></p>
+<p>按需调度下的某VF：</p>
+<p><img src="/2018/07/27/on-demand-scheduling/nexuiz-yield-4vf.png" alt="nexuiz-bm"></p>
+<p>大家可以看到，按需调度的FPS曲线图，从曲线上看更接近物理机模式的图(这就是由于延迟被降低的缘故)，就好像是物理机的fps曲线图在振幅上打了个折扣一样；而RR调度的图像方波图，即一高一低跳跃明显（当占有GPU时FPS会非常高，当其他VF占有时自己的桢会遭受延迟处理，因此FPS会下掉），因此，而且形状上也不太贴近物理机的曲线图。</p>
+<p>理论上，每一帧的导数与物理机的每一帧的导数越接近说明延迟越少，以后我会考虑写脚本去做定量的数值分析来判断调度算法的质量，而不是目前这种靠肉眼观察fps曲线图的主观判断，定量分析算法如下：</p>
+<p><strong>prepare data</strong> </p>
+<p>fps_bm = bare-metal.frames.avg;</p>
+<p>for each “idx” in all frames -1</p>
+<p>​    bare-metal.frames[idx].delta = bare-metal.frames[idx+1].fps -  bare-metal.frames[idx].fps;</p>
+<p>for each “X” in all VFs:</p>
+<p>​    fps_VF[X] = VF[X].frames.avg;</p>
+<p>​    scaling[X] = fps_bm/fps_VF[X];</p>
+<p>​    for each “idx” in all frames -1</p>
+<p>​        VF[X].frames[idx].delta = VF[X].frames[idx+1].fps -  VF[X].frames[idx].fps;</p>
+<p><strong>Do the calculation for the score</strong></p>
+<p>for each “X” in all VFs:</p>
+<p>​    for each “idx” in all frames - 1:</p>
+<p>​        gap += square root of (bare-metal.frames[idx].delta- scaling[X] * VF[X].frames[idx].delta)^2</p>
+<p>gap 就是最后的分数，理论上越小越好。</p>
+<p>NOTES：判断质量的标准是图形是否足够接近物理机，如果不是用fps的阶梯而是fps本身的话，并不能充分反映”fps曲线形状“这个概念，请读者自行理解这里的区别。</p>
+<p>这篇文章就到此结束，Farewell ！</p>
 
           
         
