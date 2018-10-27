@@ -79,13 +79,13 @@
 
 
 
-<meta name="description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/ 本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇。 note: 本文面向对GPU硬件和驱动有一定基">
+<meta name="description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/2018/07/27/on-demand-scheduling/ 本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我">
 <meta name="keywords" content="AMD GPU虚拟化,青云原创">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AMD GPU虚拟化的按需调度策略">
 <meta property="og:url" content="http://yoursite.com/2018/07/27/on-demand-scheduling/index.html">
 <meta property="og:site_name" content="navycloud 青云">
-<meta property="og:description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/ 本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇。 note: 本文面向对GPU硬件和驱动有一定基">
+<meta property="og:description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/2018/07/27/on-demand-scheduling/ 本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/on-demand-scheduling.png">
@@ -93,10 +93,10 @@
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/nexuiz-bm.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/nexuiz-rr-4vf.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/nexuiz-yield-4vf.png">
-<meta property="og:updated_time" content="2018-09-01T11:49:06.787Z">
+<meta property="og:updated_time" content="2018-10-27T03:06:26.073Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AMD GPU虚拟化的按需调度策略">
-<meta name="twitter:description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/ 本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇。 note: 本文面向对GPU硬件和驱动有一定基">
+<meta name="twitter:description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/2018/07/27/on-demand-scheduling/ 本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我">
 <meta name="twitter:image" content="http://yoursite.com/2018/07/27/on-demand-scheduling/round-robin-scheduling.png">
 
 
@@ -318,7 +318,7 @@
 
       
         <p><em>青云原创, GPU 虚拟化 </em></p>
-<p>转载请注明出处：<strong><em><a href="https://navycloud.github.io/" target="_blank" rel="noopener">https://navycloud.github.io/</a></em></strong></p>
+<p>转载请注明出处：<strong><em><a href="https://navycloud.github.io/2018/07/27/on-demand-scheduling/" target="_blank" rel="noopener">https://navycloud.github.io/2018/07/27/on-demand-scheduling/</a></em></strong></p>
 <p>本文主要内容是给大家分享一下笔者最近在工作中关于GPU虚拟化调度策略的一点小小的研究成果，因此并不会详细地讲解AMD GPU虚拟化技术原理与实现，仅从概念上带过，目的是让观众关注调度策略本身。关于AMD GPU虚拟化基本原理与实现我会抽空另写一篇。</p>
 <p>note: 本文面向对GPU硬件和驱动有一定基础的同学，当然没有基础也可以嗑瓜子看看</p>
 <h2 id="AMD-GPU虚拟化方案简介"><a href="#AMD-GPU虚拟化方案简介" class="headerlink" title="AMD GPU虚拟化方案简介"></a>AMD GPU虚拟化方案简介</h2><p>首先简单介绍一下AMD 的GPU 虚拟化方案。</p>
@@ -449,6 +449,22 @@
       
 
       
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/05/gpu-preemption-in-virtualization/" rel="next" title="AMD显卡的硬件虚拟化核心功能---GPU抢占">
+                <i class="fa fa-chevron-left"></i> AMD显卡的硬件虚拟化核心功能---GPU抢占
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
 
       
       
@@ -525,7 +541,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

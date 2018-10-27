@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="AMD GPU虚拟化,青云原创," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="青云原创, GPU 虚拟化  转载请注明出处：http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本文并不是AM">
+<meta name="keywords" content="AMD GPU虚拟化,青云原创">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AMD显卡的硬件虚拟化核心功能---GPU抢占">
+<meta property="og:url" content="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/index.html">
+<meta property="og:site_name" content="navycloud 青云">
+<meta property="og:description" content="青云原创, GPU 虚拟化  转载请注明出处：http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本文并不是AM">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/d3d11-pipeline-stages.jpg">
+<meta property="og:updated_time" content="2018-10-27T08:29:07.178Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AMD显卡的硬件虚拟化核心功能---GPU抢占">
+<meta name="twitter:description" content="青云原创, GPU 虚拟化  转载请注明出处：http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本文并不是AM">
+<meta name="twitter:image" content="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/d3d11-pipeline-stages.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/"/>
+
+
+
+
+
+  <title>AMD显卡的硬件虚拟化核心功能---GPU抢占 | navycloud 青云</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">navycloud 青云</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="navycloud">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/portrait-sm.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="navycloud 青云">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">AMD显卡的硬件虚拟化核心功能---GPU抢占</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-05T00:00:00+08:00">
+                2017-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><em>青云原创, GPU 虚拟化 </em></p>
+<p>转载请注明出处：<strong><em><a href="http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/" target="_blank" rel="noopener">http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/</a></em></strong></p>
+<p>本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。</p>
+<h2 id="AMD-GPU硬件虚拟化基本术语"><a href="#AMD-GPU硬件虚拟化基本术语" class="headerlink" title="AMD GPU硬件虚拟化基本术语"></a>AMD GPU硬件虚拟化基本术语</h2><p>由于本文并不是AMD GPU 硬件虚拟化基本原理教程，因此不会涉及基本原理方面的讲解，所以下面简单描述一下几个常见的术语。</p>
+<ol>
+<li>engine 指一种GPU 内部的计算资源，主要是指：GFX （graphics， 用于图像绘制），SDMA （用于数据搬运，复制），MM （多媒体，用于视频编解码）</li>
+<li>VF：指 Virtual Function， 也就是虚拟出来并pass through 给虚拟机的AMD pci device</li>
+<li>PF：指Physical Function, 也就是AMD GPU 硬件本尊的pci device</li>
+<li>world switch: 指对一个（或多个）engine进行调度切换，即将engines 从一个VF 调度给另一个VF使用， 这之中就涉及到抢占。</li>
+<li>Pipleline： 也就是GFX engine，即GPU渲染流水线，这是一个非常基本的GPU术语，各位可以google之，一大把资料，它就是游戏画面渲染的工厂，非常复杂，下面会简单描述。</li>
+</ol>
+<h2 id="什么是GFX-pipeline"><a href="#什么是GFX-pipeline" class="headerlink" title="什么是GFX pipeline"></a>什么是GFX pipeline</h2><p>pipeline 是有多个模块组成的，多年来一直在不断地发展和变换，下面介绍一个典型的pipeline：</p>
+<p><img src="/2017/08/05/gpu-preemption-in-virtualization/d3d11-pipeline-stages.jpg" alt=""></p>
+<p>从这图(微软的DX11 pipeline)可以看到，pipeline发展到目前已经由很多环节组成了，但基本的模型并没有变：</p>
+<ol>
+<li><p>首先需要游戏输入顶点数据(以及每个顶点附带的属性数据，例如法线，颜色，自定义数据等），然后vertex shader stage用游戏提供的”vertex shader” (shader是一种程序) 来处理每一个用户输入的顶点，是吞吐量非常高的SIMD计算方式。vertex shader具体做什么完全取决于游戏开发者怎么攥写shader程序本身，不过套路还是有的：例如把给定顶点从模型空间用矩阵转换为视角空间（具体参考计算机3d图形学），并结合此次具体渲染的对象做一些处理：比如渲染风中的树叶可以用一些随机数来小范围改变树叶上部分顶点位置，从而制造每一片树叶都在风中自然而又凌乱的婆娑效果，而不是步伐一致的抖动。（在可编程pipeline出现前，要达到这样的效果需要花费巨量的CPU运算）。</p>
+</li>
+<li><p>Hull shader stage 是为tesselator 这个feature服务的，它将VS的输出分组，例如每三个顶点形成一个三角形，称为一个patch，然后将这些patch根据给附带的属性（每一个patch都有属性数据，例如复杂度就是一个数据）将一个patch分割成更多的patch并输出，当然也可以完全不做任何修改直接输出，完全取决于游戏开发人员。</p>
+</li>
+<li><p>tesselator shader stage 是不可编程的，它的作用是根据之前的shader stage（Hull shader)产生的输出靠硬件“聪明”地自动衍生出更多的顶点，从而把模型变得更复杂（效果更好），AMD是第一个提出该概念的公司。</p>
+<p>（在OpenGL 规范中，由于tesselator shader stage对开发人员透明，不可编程。因此直接把hull shader stage he tesselator shader stage 合并成了一个stage，叫做TESS control shader stage）。</p>
+</li>
+<li><p>domain shader stage 是让游戏开发人员用来将tesselator shader stage 输出的（大量的）顶点组成的patch（三角形，正方形，etc…) 的每一个顶点再转换为世界坐标系（tesselator shader stage 输出的patch的顶点坐标系是每一个patch各自的内部坐标系，因此这些顶点的x,y,z,w数值对世界坐标系无意义），亦包括这些顶点附带的属性值，例如它的法线向量，颜色，纹理坐标等。</p>
+</li>
+<li><p>Geometry shader stage: 启示作用不大，它是把一个一个三角形转换为三角形带（strip，比如相邻的两个三角形不需要用6个顶点表示，只需要4个），当然这也是取决于游戏开发人员的意愿，你可以什么都不做，也没毛病因为domain shader stage 得到的数据已经可以给光栅化引擎了。</p>
+</li>
+<li><p>Rasterizer stage （光栅化）就是把数学上的顶点坐标，以及附带的属性例如法线，颜色，纹理坐标，用户自定义参数等，根据屏幕分辨率用固定的算法把这些“数学”顶点映射到离散的屏幕上去，也就是像素。（数学上的顶点的位置坐标是浮点数，而屏幕的分辨率却是具体的整数，因此需要有个变换），它的输入是”数学“级别的三维空间的顶点坐标及其附带的各种数据，输出是二维平面的x,y坐标以及附带的数据（颜色，法线，深度值，模板值，等等）</p>
+</li>
+<li><p>Pixel shader stage就是通过Rasterize 的结果把每一个frag作为一个数据（离散坐标，颜色，法线，各种附带属性）传递给 pixel shader（也是游戏自己撰写的程序）处理，最终产生Pixel， Pixel就是像素，也就是屏幕上看到的每一个由颜色的点。</p>
+</li>
+</ol>
+<p>实际上，还有clip rectangle， color buffer， depth buffer， stencil buffer等“非可编程”的硬件模块会参与到pixel的计算，但是这些都不需要详细描述，因为他们都不是可编程pipeline的核部分心。</p>
+<p>以上就是微软DX11定义的pipeline，vulkan和OpenGL也有各自的定义，但是大同小异，AMD和NV的可编程管线硬件也都能完全100%支持这三个API定义的流水线，实现就是靠驱动软件，我们称之位3d驱动（DX11驱动，ogl驱动，vulkan驱动)。OK，GFX pipeline的介绍到此为止，下面是正题。</p>
+<h2 id="GPU-抢占"><a href="#GPU-抢占" class="headerlink" title="GPU 抢占"></a>GPU 抢占</h2><h3 id="什么是GPU-抢占"><a href="#什么是GPU-抢占" class="headerlink" title="什么是GPU 抢占"></a>什么是GPU 抢占</h3><p>CPU 抢占应该由不少读者了解，也就是CPU在内核态运行过程中，它会找机会主动停止自己的运行，从而服务另一个线程，目的是让响应速度变快，缺点是耽误了内核态的运行，而且一次CPU抢占也对应一次task切换，从而对整体的系统而言，性能是有负面影响的。</p>
+<p>GPU 抢占和CPU抢占类似，也是把GPU在运行中尽快停止，并服务另一个客户（客户在虚拟化的应用就是VF，在非虚拟化环境中可以是另一个执行体，例如另一个更高优先级的gpu command）</p>
+<h3 id="AMD-GPU硬件虚拟化为何需要GPU-抢占"><a href="#AMD-GPU硬件虚拟化为何需要GPU-抢占" class="headerlink" title="AMD GPU硬件虚拟化为何需要GPU 抢占"></a>AMD GPU硬件虚拟化为何需要GPU 抢占</h3><p>AMD GPU硬件虚拟化是基于分时复用驱动的，意味着任意时刻，对任意engine，只能由一个VF在占用它，因此必须要通过world switch来让每一个VF都有机会使用engine资源。每一次把一个engine从一个VF切出去，就是一次engine preemption（抢占）。</p>
+<p>如果没有GPU 抢占，那么当world switch请求发到某一个engine上（例如GFX）时，该engine并不会去暂停工作，而是待当前工作完全结束才去响应world switch请求，这就造成一个问题：<br>如果当前工作量非常庞大，那么会让其他VF 等很长的时间导致差用户体验，而且影响engine分配的公平性。</p>
+<p>PS：即使有了GPU 抢占，也只是缓解问题，因为AMD 目前的GPU 抢占（对GFX 和MM engine而言）并不能立刻完成，它还是依赖于工作量的大小，只不过它比不抢占而彻底等待工作完成要快得多。对于SDMA engine而言抢占可以做到非常快，SDMA仅仅是数据传输的工作，所以可以做到立刻暂停。</p>
+<p>题外话：当有多个VF同时运行游戏时，按照目前默认的分时复用策略，在实际游戏中会造成忽快忽慢的卡顿（GPU latency）现象，这个是有严格分时复用引起的，我在另一篇文章<a href="https://navycloud.github.io/2018/07/27/on-demand-scheduling/" target="_blank" rel="noopener">“AMD GPU虚拟化的按需调度策略”</a>中提出了一个新的调度策略可以很大程度减少卡顿现象。</p>
+<h3 id="GFX-engine-的抢占"><a href="#GFX-engine-的抢占" class="headerlink" title="GFX engine 的抢占"></a>GFX engine 的抢占</h3><p>GFX 抢占的原理并不简单，但是由于AMD内部的技术细节我不能public发表，因此就只能从概念上描述一下：</p>
+<ol>
+<li>在GFX engine得到world switch请求时，这个请求指令是hypervisor通过programing其它硬件模块（RLCV,只需要知道名字就可以了，不必追究细节，我也不会透露）来通知CP 的（CP是command processor，它是GFX pipeline的前锋，负责把3d驱动的一些列指令转换成pipeline能理解的信号，驱动pipeline运行），CP会在“可以抢占的指令点”上暂停当前的工作，并调度到另一个VF 上。</li>
+<li>CP 通过一个叫DRAW的指令驱动GFX Pipeline工作，而pipeline一旦开始工作是不能停止的，必须等到pixel shader stage完成了才能停止，因此CP只能在每一次DRAW之后暂停GFX ENGINE，通常而言，3d驱动会在一次command stream中要求gfx engine做几百个或者上千上万个DRAW 操作，也就有那么多个时间点可以允许CP暂停使用pipeline，也就达到了所谓的抢占的效果，可以说目前AMD的抢占是比较粗粒度的。</li>
+<li>当CP开始抢占时，它会把很多信息保存到指定位置从而可以下次恢复运行，例如它需要把现在运行到了command stream的位置保存下来，还需要把很多3d寄存器的内容保存下来（切到其他vf后这些内容会被覆盖），但是具体怎么保存和恢复是非常复杂的（我于2017年6月份为了解决这些问题在美国出差了一个月，天天和CP硬件团队一起debug）这里不展开了，技术上写清楚以来不合法，而来没必要。</li>
+</ol>
+<p>NOTE：</p>
+<ol>
+<li>你可以理解为每一个draw对应一个小物体，例如杯子。</li>
+<li>DRAW一旦开始不能被抢占，只能等他完成，因此一个含有1000个DRAW的command stream中理论上有1000个点可以被抢占。</li>
+<li>在DRAW之前，command stream中会有设置各类shader程序的指令，用以告诉GFX ENGINE当pipeline开始工作时，各类shader指令在哪段内存中。</li>
+</ol>
+<h3 id="SDMA-engine-的抢占"><a href="#SDMA-engine-的抢占" class="headerlink" title="SDMA engine 的抢占"></a>SDMA engine 的抢占</h3><p>这就比较简单了，概念上仍旧是收到RLCV的抢占消息后最快速度的保存，下次再恢复，但是SDMA由于硬件实现简单因此可以做到立刻抢占。</p>
+<h3 id="multi-media-engine-的抢占"><a href="#multi-media-engine-的抢占" class="headerlink" title="multi-media engine 的抢占"></a>multi-media engine 的抢占</h3><p>这块比较复杂，但是远远没有GFX复杂，基本上也时粗粒度的暂停，保存，恢复操作。区别是mm的抢占发起方不是RLCV，而是一个叫MM-SCHEDULER的模块，不过本质上没有区别啦。</p>
+<p>本文到此结束，有时间我会增加细节（在合法的情况下），Farewell！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AMD-GPU虚拟化/" rel="tag"># AMD GPU虚拟化</a>
+          
+            <a href="/tags/青云原创/" rel="tag"># 青云原创</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/27/on-demand-scheduling/" rel="prev" title="AMD GPU虚拟化的按需调度策略">
+                AMD GPU虚拟化的按需调度策略 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/portrait-sm.jpg"
+                alt="navycloud" />
+            
+              <p class="site-author-name" itemprop="name">navycloud</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#AMD-GPU硬件虚拟化基本术语"><span class="nav-number">1.</span> <span class="nav-text">AMD GPU硬件虚拟化基本术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是GFX-pipeline"><span class="nav-number">2.</span> <span class="nav-text">什么是GFX pipeline</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPU-抢占"><span class="nav-number">3.</span> <span class="nav-text">GPU 抢占</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#什么是GPU-抢占"><span class="nav-number">3.1.</span> <span class="nav-text">什么是GPU 抢占</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AMD-GPU硬件虚拟化为何需要GPU-抢占"><span class="nav-number">3.2.</span> <span class="nav-text">AMD GPU硬件虚拟化为何需要GPU 抢占</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GFX-engine-的抢占"><span class="nav-number">3.3.</span> <span class="nav-text">GFX engine 的抢占</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SDMA-engine-的抢占"><span class="nav-number">3.4.</span> <span class="nav-text">SDMA engine 的抢占</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#multi-media-engine-的抢占"><span class="nav-number">3.5.</span> <span class="nav-text">multi-media engine 的抢占</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">navycloud</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
