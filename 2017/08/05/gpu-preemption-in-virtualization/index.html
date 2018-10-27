@@ -79,19 +79,19 @@
 
 
 
-<meta name="description" content="青云原创, GPU 虚拟化  转载请注明出处：http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本文并不是AM">
+<meta name="description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本">
 <meta name="keywords" content="AMD GPU虚拟化,青云原创">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AMD显卡的硬件虚拟化核心功能---GPU抢占">
 <meta property="og:url" content="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/index.html">
 <meta property="og:site_name" content="navycloud 青云">
-<meta property="og:description" content="青云原创, GPU 虚拟化  转载请注明出处：http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本文并不是AM">
+<meta property="og:description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/d3d11-pipeline-stages.jpg">
-<meta property="og:updated_time" content="2018-10-27T08:29:07.178Z">
+<meta property="og:updated_time" content="2018-10-27T08:36:55.668Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AMD显卡的硬件虚拟化核心功能---GPU抢占">
-<meta name="twitter:description" content="青云原创, GPU 虚拟化  转载请注明出处：http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本文并不是AM">
+<meta name="twitter:description" content="青云原创, GPU 虚拟化  转载请注明出处：https://navycloud.github.io/2017/08/05/gpu-preemption-in-virtualization/ 本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。 AMD GPU硬件虚拟化基本术语由于本">
 <meta name="twitter:image" content="http://yoursite.com/2017/08/05/gpu-preemption-in-virtualization/d3d11-pipeline-stages.jpg">
 
 
@@ -313,7 +313,7 @@
 
       
         <p><em>青云原创, GPU 虚拟化 </em></p>
-<p>转载请注明出处：<strong><em><a href="http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/" target="_blank" rel="noopener">http://localhost:5000/2017/08/05/gpu-preemption-in-virtualization/</a></em></strong></p>
+<p>转载请注明出处：<strong><em><a href="https://navycloud.github.io/2017/08/05/gpu-preemption-in-virtualization/" target="_blank" rel="noopener">https://navycloud.github.io/2017/08/05/gpu-preemption-in-virtualization/</a></em></strong></p>
 <p>本文将详细介绍AMD 显卡的GPU抢占功能以及在GPU虚拟化中的重要作用，理解GPU抢占需要适当的GPU原理基础，因此我也会适当笔墨部分基本的GPU Pipeline。</p>
 <h2 id="AMD-GPU硬件虚拟化基本术语"><a href="#AMD-GPU硬件虚拟化基本术语" class="headerlink" title="AMD GPU硬件虚拟化基本术语"></a>AMD GPU硬件虚拟化基本术语</h2><p>由于本文并不是AMD GPU 硬件虚拟化基本原理教程，因此不会涉及基本原理方面的讲解，所以下面简单描述一下几个常见的术语。</p>
 <ol>
@@ -364,7 +364,7 @@
 <li>在DRAW之前，command stream中会有设置各类shader程序的指令，用以告诉GFX ENGINE当pipeline开始工作时，各类shader指令在哪段内存中。</li>
 </ol>
 <h3 id="SDMA-engine-的抢占"><a href="#SDMA-engine-的抢占" class="headerlink" title="SDMA engine 的抢占"></a>SDMA engine 的抢占</h3><p>这就比较简单了，概念上仍旧是收到RLCV的抢占消息后最快速度的保存，下次再恢复，但是SDMA由于硬件实现简单因此可以做到立刻抢占。</p>
-<h3 id="multi-media-engine-的抢占"><a href="#multi-media-engine-的抢占" class="headerlink" title="multi-media engine 的抢占"></a>multi-media engine 的抢占</h3><p>这块比较复杂，但是远远没有GFX复杂，基本上也时粗粒度的暂停，保存，恢复操作。区别是mm的抢占发起方不是RLCV，而是一个叫MM-SCHEDULER的模块，不过本质上没有区别啦。</p>
+<h3 id="multi-media-engine-的抢占"><a href="#multi-media-engine-的抢占" class="headerlink" title="multi-media engine 的抢占"></a>multi-media engine 的抢占</h3><p>这块比较复杂，但是远远没有GFX复杂，基本上也是粗粒度的暂停，保存，恢复操作。区别是mm的抢占发起方不是RLCV，而是一个叫MM-SCHEDULER的模块，不过本质上没有区别啦。</p>
 <p>本文到此结束，有时间我会增加细节（在合法的情况下），Farewell！</p>
 
       
